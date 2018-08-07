@@ -10,11 +10,10 @@ const http = require('http');
 const url = require('url');
 const stringDecoder = require('string_decoder').StringDecoder;
 
-
 // Server
 const server = http.createServer(function(req, res){
 
-	// parseURL && collect clean path & queryString from url object
+	// parseURL & collect clean path, queryString from url object
 	const parseUrl = url.parse(req.url, true); // true here means that query string(if any) should be parsed
 	const urlPath = parseUrl.pathname;
 	const urlCleanPath = urlPath.replace(/^\/+|\/+$/g,'');
@@ -56,13 +55,19 @@ const server = http.createServer(function(req, res){
 			statusCode = typeof(statusCode) == 'number' ? statusCode : 200;
 			payload = typeof(payload) == 'object' ? payload : {};
 
+			/* add reqData after the welcome message to the payload in order to appear in JSON 
+			response if someone uses the route /hello */
+			if(reqData.urlCleanPath === 'hello'){
+				payload.reqData = reqData;
+			}
+
 			// Server response
 			res.setHeader('Content-Type','application/JSON');
 			res.writeHead(statusCode);
 			res.end(JSON.stringify(payload));
 
 			// Server log
-			console.log(`status code: ${statusCode}\npayload: ${JSON.stringify(payload)}\nrequest data:`, reqData);
+			console.log(`>> status code: ${statusCode}\npayload: ${JSON.stringify(payload)}\nrequest data:`, reqData);
 
 		});
 	
@@ -78,7 +83,7 @@ server.listen(4000, function(){
 // The routes object
 const routes = {
 	hello : (data, callback) => {
-		callback(200, {'hello':'Hello there! Goodtimes!'});
+		callback(200, {'welcome-message':'Hello there! Goodtimes!'});
 	},
 	notFound : (data, callback) => {
 		callback(404, {'route':'Not Found'});
